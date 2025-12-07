@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anesthesia Pro 3.0</title>
+    <title>Anesthesia Pro 3.1 (Vertical Scroll)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -13,8 +13,7 @@
                 extend: {
                     colors: {
                         brand: { 50: '#f0f9ff', 100: '#e0f2fe', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1', 900: '#0c4a6e' },
-                        darkbg: '#0f172a',
-                        card: '#1e293b'
+                        darkbg: '#0f172a', card: '#1e293b'
                     },
                     fontFamily: { sans: ['Inter', 'sans-serif'] }
                 }
@@ -27,226 +26,140 @@
 
     <style>
         body { font-family: 'Inter', sans-serif; }
-        
-        /* 4. Glassmorphism Design */
-        .glass {
-            background: rgba(255, 255, 255, 0.75);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(255,255,255,0.3);
-        }
-        .dark .glass {
-            background: rgba(30, 41, 59, 0.75);
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.3); }
+        .dark .glass { background: rgba(30, 41, 59, 0.85); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .dark ::-webkit-scrollbar-thumb { background: #475569; }
-
-        /* Animations */
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        
-        /* Night Mode Filter */
         .pdf-invert { filter: invert(0.92) hue-rotate(180deg) grayscale(0.2) contrast(1.1); }
-
-        /* 2. Toast Notifications */
-        #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 100; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
-        .toast { pointer-events: auto; background: #1e293b; color: white; padding: 12px 20px; border-radius: 12px; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.3); display: flex; items-center; gap: 12px; transform: translateX(100%); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s; opacity: 0; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.1); }
-        .toast.show { transform: translateX(0); opacity: 1; }
-        .toast-success i { color: #4ade80; }
-        .toast-error i { color: #f87171; }
-
-        /* Tree View (TOC) */
-        .outline-row { transition: 0.15s; }
-        .outline-row:hover { background-color: rgba(2, 132, 199, 0.1); color: #0284c7; }
-        .toggle-icon { transition: transform 0.2s; }
-        .toggle-icon.expanded { transform: rotate(90deg); }
-        .children-container { display: none; padding-left: 14px; border-left: 1px solid #e2e8f0; margin-left: 6px; }
-        .dark .children-container { border-color: #334155; }
-        .children-container.open { display: block; }
-
-        /* 5. Focus Mode Hide Classes */
-        body.focus-mode header, 
-        body.focus-mode #sidePanel, 
-        body.focus-mode #prevBtn, 
-        body.focus-mode #nextBtn { 
-            display: none !important; 
-        }
-        body.focus-mode #mainScroll {
-            background-color: #111; /* Dark background for focus */
-        }
-        /* Floating Exit Button for Focus Mode */
+        
+        /* Page Container Styles */
+        .pdf-page-container { margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); position: relative; background: white; min-height: 800px; }
+        .dark .pdf-page-container { background: #333; } /* Placeholder color while loading */
+        
+        /* Focus Mode */
+        body.focus-mode header, body.focus-mode #sidePanel { display: none !important; }
+        body.focus-mode #mainScroll { background-color: #1a1a1a; }
         #exitFocusBtn { display: none; }
         body.focus-mode #exitFocusBtn { display: flex; }
 
+        /* Toast */
+        #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 100; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .toast { pointer-events: auto; background: #1e293b; color: white; padding: 12px 20px; border-radius: 12px; transform: translateX(100%); transition: transform 0.4s, opacity 0.4s; opacity: 0; }
+        .toast.show { transform: translateX(0); opacity: 1; }
+
+        /* Side Panel */
+        .outline-row:hover { background-color: rgba(2, 132, 199, 0.1); color: #0284c7; }
+        .children-container { display: none; padding-left: 14px; border-left: 1px solid #e2e8f0; margin-left: 6px; }
+        .children-container.open { display: block; }
     </style>
 </head>
-<body class="bg-gray-50 dark:bg-darkbg text-gray-900 dark:text-gray-100 transition-colors duration-300 h-screen flex flex-col overflow-hidden selection:bg-brand-500 selection:text-white">
+<body class="bg-gray-50 dark:bg-darkbg text-gray-900 dark:text-gray-100 transition-colors duration-300 h-screen flex flex-col overflow-hidden">
 
     <div id="toast-container"></div>
-
     <button id="exitFocusBtn" onclick="toggleFocusMode()" class="fixed top-4 right-4 z-50 bg-white/10 backdrop-blur-md text-white px-4 py-2 rounded-full border border-white/20 hover:bg-white/20 transition shadow-xl items-center gap-2">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-        <span class="text-xs font-bold">Exit Focus (ESC)</span>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg><span class="text-xs font-bold">Exit Focus (ESC)</span>
     </button>
 
     <div id="library-view" class="flex flex-col h-full overflow-y-auto">
-        
         <header class="sticky top-0 z-40 glass w-full">
             <div class="container mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 bg-gradient-to-br from-brand-500 to-brand-700 rounded-xl flex items-center justify-center text-white font-bold shadow-lg shadow-brand-500/20">
-                        AP
-                    </div>
+                    <div class="w-9 h-9 bg-brand-600 rounded-xl flex items-center justify-center text-white font-bold shadow-lg">AP</div>
                     <h1 class="text-xl font-bold tracking-tight hidden sm:block">Anesthesia <span class="text-brand-600 dark:text-brand-400">Pro</span></h1>
                 </div>
-                
                 <div class="flex items-center gap-3">
-                    <div class="hidden md:flex items-center bg-gray-100 dark:bg-card px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-700 focus-within:ring-2 ring-brand-500/50 transition">
+                    <div class="hidden md:flex items-center bg-gray-100 dark:bg-card px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-700">
                         <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                        <input id="globalSearch" type="text" placeholder="Search library..." class="bg-transparent border-none focus:ring-0 text-xs w-48 ml-2 dark:text-gray-200 placeholder-gray-500">
+                        <input id="globalSearch" type="text" placeholder="Search..." class="bg-transparent border-none focus:ring-0 text-xs w-48 ml-2 dark:text-gray-200">
                     </div>
-                    <button onclick="toggleTheme()" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition text-gray-500">
-                        <svg id="themeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-                    </button>
+                    <button onclick="toggleTheme()" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"><svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg></button>
                 </div>
             </div>
         </header>
 
         <main class="container mx-auto px-4 sm:px-6 py-8 flex-grow space-y-10">
-            
             <section id="recentSection" class="hidden animate-slide-up">
-                <div class="flex items-center justify-between mb-4">
-                     <h2 class="text-lg font-bold flex items-center gap-2 text-gray-800 dark:text-gray-100">
-                        <span>⚡ Jump Back In</span>
-                    </h2>
-                </div>
-               
-                <div id="continueReadingCard" class="bg-white dark:bg-card p-5 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 flex gap-5 items-center relative overflow-hidden group cursor-pointer transition hover:border-brand-500/30">
-                    <div class="absolute -right-10 -top-10 w-32 h-32 bg-brand-500/10 rounded-full blur-3xl group-hover:bg-brand-500/20 transition"></div>
-                    
-                    <div class="w-16 h-24 sm:w-20 sm:h-28 rounded-lg bg-gray-200 shadow-md flex-shrink-0 overflow-hidden relative">
-                         <img id="recentCover" src="" class="w-full h-full object-cover">
-                    </div>
-                    <div class="flex-1 z-10">
-                        <div class="flex justify-between items-start">
-                             <div>
-                                <h3 id="recentTitle" class="text-base sm:text-lg font-bold text-gray-900 dark:text-white leading-tight mb-1">Book Title</h3>
-                                <p id="recentPage" class="text-xs sm:text-sm text-gray-500 font-medium">Page 45</p>
-                             </div>
-                             <button id="recentResumeBtn" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold shadow-lg shadow-brand-500/30 transition transform group-hover:scale-105">
-                                Resume
-                             </button>
-                        </div>
-                        <div class="w-full bg-gray-100 dark:bg-gray-700 h-1.5 rounded-full mt-3 overflow-hidden">
-                            <div class="bg-brand-500 h-full rounded-full" style="width: 35%"></div>
-                        </div>
+                <h2 class="text-lg font-bold mb-4">⚡ Jump Back In</h2>
+                <div id="continueReadingCard" class="bg-white dark:bg-card p-5 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 flex gap-5 items-center group cursor-pointer hover:border-brand-500/50 transition">
+                    <img id="recentCover" src="" class="w-16 h-24 sm:w-20 sm:h-28 rounded-lg object-cover bg-gray-200">
+                    <div>
+                        <h3 id="recentTitle" class="text-base font-bold text-gray-900 dark:text-white mb-1">Book Title</h3>
+                        <p id="recentPage" class="text-sm text-gray-500">Page 1</p>
+                        <button class="mt-2 bg-brand-600 text-white px-4 py-1.5 rounded-lg text-xs font-bold shadow-lg shadow-brand-500/30">Resume</button>
                     </div>
                 </div>
             </section>
 
-            <section class="animate-slide-up" style="animation-delay: 0.1s;">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                    <div>
-                        <h2 class="text-lg font-bold">Library</h2>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">All your references in one place.</p>
-                    </div>
-                    <div class="flex gap-2 p-1 bg-gray-100 dark:bg-card rounded-lg" id="filterTabs">
-                        <button class="px-4 py-1.5 rounded-md text-xs font-bold bg-white dark:bg-gray-600 text-brand-600 dark:text-white shadow-sm transition" data-cat="all">All</button>
-                        <button class="px-4 py-1.5 rounded-md text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition" data-cat="new">New</button>
-                        <button class="px-4 py-1.5 rounded-md text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition" data-cat="major">Major</button>
+            <section class="animate-slide-up">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-lg font-bold">Library</h2>
+                    <div class="flex gap-2" id="filterTabs">
+                        <button class="px-3 py-1 rounded text-xs font-bold bg-brand-600 text-white" data-cat="all">All</button>
+                        <button class="px-3 py-1 rounded text-xs font-medium bg-gray-100 dark:bg-card hover:bg-gray-200" data-cat="major">Major</button>
                     </div>
                 </div>
-
-                <div id="booksGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-6 gap-y-10">
-                    </div>
+                <div id="booksGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6"></div>
             </section>
         </main>
     </div>
 
     <div id="reader-view" class="hidden fixed inset-0 z-50 bg-gray-100 dark:bg-darkbg flex flex-col">
-        
-        <header id="readerHeader" class="h-14 glass flex items-center justify-between px-4 z-20 shadow-sm shrink-0 transition-transform duration-300">
+        <header class="h-14 glass flex items-center justify-between px-4 z-20 shadow-sm shrink-0">
             <div class="flex items-center gap-3">
-                <button onclick="closeReader()" class="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition text-gray-600 dark:text-gray-300 flex items-center gap-2 group">
-                    <svg class="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                    <span class="text-xs font-bold uppercase tracking-wide hidden sm:inline">Library</span>
+                <button onclick="closeReader()" class="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-brand-600 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    <span class="text-xs font-bold uppercase hidden sm:inline">Library</span>
                 </button>
-                <div class="h-6 w-px bg-gray-300 dark:bg-gray-700"></div>
-                <h2 id="readerTitle" class="text-xs sm:text-sm font-bold truncate max-w-[120px] sm:max-w-md text-gray-800 dark:text-gray-200"></h2>
+                <h2 id="readerTitle" class="text-xs sm:text-sm font-bold truncate max-w-[150px] sm:max-w-md"></h2>
             </div>
-
-            <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-1 bg-white dark:bg-card shadow-sm border border-gray-200 dark:border-gray-700 rounded-lg p-1">
-                <button id="prevBtn" class="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
-                <input type="number" id="pageInput" class="w-10 text-center text-xs font-mono bg-transparent border-none focus:ring-0 appearance-none m-0 font-bold" value="1">
+            
+            <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2 bg-white dark:bg-card border border-gray-200 dark:border-gray-700 rounded-lg p-1 shadow-sm">
+                <input type="number" id="pageInput" class="w-12 text-center text-xs font-bold bg-transparent border-none focus:ring-0" value="1">
                 <span class="text-xs text-gray-400 select-none mr-2">/ <span id="totalPages">--</span></span>
-                <button id="nextBtn" class="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
             </div>
 
-            <div class="flex items-center gap-1 sm:gap-2">
-                <button onclick="toggleFocusMode()" class="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300" title="Focus Mode (H)">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+            <div class="flex items-center gap-1">
+                <button onclick="toggleFocusMode()" class="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700" title="Focus (H)">
+                    <svg class="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                 </button>
-                
-                <div class="h-6 w-px bg-gray-300 dark:bg-gray-700 mx-1"></div>
-
-                <button onclick="toggleSidePanel('toc')" class="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300" title="Contents (T)">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                <button onclick="toggleSidePanel('toc')" class="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700" title="Contents (T)">
+                    <svg class="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 </button>
-                <button onclick="toggleSidePanel('search')" class="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300" title="Search (F)">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <button onclick="toggleInvert()" class="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700" title="Night Mode">
+                    <svg class="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
                 </button>
-                <button onclick="toggleInvert()" class="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300" title="Night Mode">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-                </button>
-                <button onclick="addBookmark()" class="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-yellow-500" title="Bookmark (B)">
+                <button onclick="addBookmark()" class="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-yellow-500" title="Bookmark (B)">
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
                 </button>
             </div>
         </header>
 
         <div class="flex flex-1 overflow-hidden relative">
-            
             <aside id="sidePanel" class="absolute left-0 top-0 bottom-0 w-80 bg-white/95 backdrop-blur dark:bg-card/95 border-r border-gray-200 dark:border-gray-700 z-30 transform -translate-x-full transition-transform duration-300 shadow-2xl flex flex-col">
-                <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/50">
-                    <h3 id="panelTitle" class="font-bold text-gray-700 dark:text-gray-200 uppercase text-xs tracking-wider">Contents</h3>
-                    <button onclick="toggleSidePanel(null)" class="text-gray-400 hover:text-red-500"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
-                </div>
-                
-                <div id="tocContent" class="panel-content flex-1 overflow-y-auto p-2 hidden"></div>
-                
-                <div id="searchContent" class="panel-content flex-1 overflow-y-auto p-3 hidden flex-col">
-                    <div class="flex gap-2 mb-3">
-                        <input id="searchInputField" type="text" placeholder="Type keyword..." class="flex-1 bg-gray-100 dark:bg-darkbg border-none rounded text-sm px-3 py-2 focus:ring-1 focus:ring-brand-500">
-                        <button onclick="performSearch()" class="bg-brand-600 text-white px-3 rounded hover:bg-brand-700 text-sm font-bold">Go</button>
-                    </div>
-                    <div id="searchStatus" class="text-xs text-gray-500 mb-2"></div>
-                    <div id="searchResultsList" class="space-y-2"></div>
-                </div>
+                <div class="p-4 border-b flex justify-between items-center"><h3 id="panelTitle" class="font-bold text-xs uppercase">Contents</h3><button onclick="toggleSidePanel(null)" class="text-red-500">&times;</button></div>
+                <div id="tocContent" class="flex-1 overflow-y-auto p-2"></div>
             </aside>
 
             <main class="flex-1 bg-gray-100 dark:bg-darkbg overflow-auto relative flex justify-center p-4 sm:p-8" id="mainScroll">
-                <div id="pdfWrapper" class="relative shadow-2xl transition-all h-fit origin-top">
-                    <canvas id="pdfCanvas" class="block bg-white rounded-sm"></canvas>
-                </div>
+                <div id="pagesContainer" class="flex flex-col items-center w-full max-w-4xl pb-20">
+                    </div>
             </main>
         </div>
     </div>
 
     <script>
         // ==========================================
-        // 📚 YOUR BOOKS CONFIGURATION
+        // 📚 BOOKS CONFIGURATION
         // ==========================================
         const libraryDB = [
             {
                 id: "miller_rev_25",
                 title: "Miller's Anesthesia Review",
                 edition: "2025 Edition",
-                category: "new",
-                filename: "millers_anesthesia_review_2025.pdf", // Matches file in 'books' folder
+                category: "review",
+                filename: "millers_anesthesia_review_2025.pdf",
                 coverId: "1-coD-Ij1XH2lE7hCbcb8H6T7xTYCzmTM"
             },
             {
@@ -258,372 +171,245 @@
                 coverId: "1-fxhXAtaOtazkfIwMnDCe5Gh4y7Lmeg2"
             }
         ];
-        // ==========================================
 
         const state = {
             pdfDoc: null,
-            pageNum: 1,
-            scale: 1.3,
-            rendering: false,
-            pendingPage: null,
+            scale: 1.5, // High Quality
             currentBook: null,
-            searchActive: false
+            pageObservers: [],
+            visiblePages: new Set()
         };
 
         // --- Init ---
         document.addEventListener('DOMContentLoaded', () => {
-            initTheme();
-            renderLibrary();
-            checkRecentBook();
-            setupShortcuts();
+            initTheme(); renderLibrary(); checkRecentBook(); setupShortcuts();
         });
 
-        // --- 1. Dashboard & Recent Book Logic ---
-        function checkRecentBook() {
-            const recentId = localStorage.getItem('ap3_recent_id');
-            const section = document.getElementById('recentSection');
-            if(!recentId) return;
-            
-            const book = libraryDB.find(b => b.id === recentId);
-            if(!book) return;
-
-            const lastPage = localStorage.getItem(`ap3_prog_${recentId}`) || 1;
-            
-            section.classList.remove('hidden');
-            document.getElementById('recentTitle').textContent = book.title;
-            document.getElementById('recentPage').textContent = `Stopped at Page ${lastPage}`;
-            
-            const coverUrl = book.coverId ? `https://drive.google.com/thumbnail?id=${book.coverId}&sz=w400` : `https://placehold.co/400x600/e2e8f0/64748b?text=Book`;
-            document.getElementById('recentCover').src = coverUrl;
-
-            // Setup Click to Resume
-            const card = document.getElementById('continueReadingCard');
-            card.onclick = () => loadBook(book);
-        }
-
-        // --- Library Render ---
+        // --- Library ---
         function renderLibrary(cat = 'all', query = '') {
-            const grid = document.getElementById('booksGrid');
-            grid.innerHTML = '';
-            
-            const filtered = libraryDB.filter(book => {
-                const matchCat = cat === 'all' || book.category === cat;
-                const matchQuery = book.title.toLowerCase().includes(query.toLowerCase());
-                return matchCat && matchQuery;
-            });
-
-            filtered.forEach(book => {
-                const card = document.createElement('div');
-                card.className = "group cursor-pointer flex flex-col gap-3";
-                card.onclick = () => loadBook(book);
-                
-                const coverUrl = book.coverId 
-                    ? `https://drive.google.com/thumbnail?id=${book.coverId}&sz=w600` 
-                    : `https://placehold.co/400x600/e2e8f0/64748b?text=${book.title.substring(0,5)}`;
-
-                card.innerHTML = `
-                    <div class="relative aspect-[2/3] rounded-xl overflow-hidden bg-gray-200 dark:bg-gray-800 shadow-md group-hover:shadow-2xl group-hover:-translate-y-1 transition-all duration-300">
-                        <img src="${coverUrl}" class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition" loading="lazy">
+            const grid = document.getElementById('booksGrid'); grid.innerHTML = '';
+            libraryDB.filter(b => (cat==='all' || b.category===cat) && b.title.toLowerCase().includes(query.toLowerCase())).forEach(book => {
+                const el = document.createElement('div');
+                const cover = book.coverId ? `https://drive.google.com/thumbnail?id=${book.coverId}&sz=w600` : `https://placehold.co/400x600?text=${book.title.substring(0,5)}`;
+                el.className = "group cursor-pointer flex flex-col gap-3";
+                el.onclick = () => loadBook(book);
+                el.innerHTML = `
+                    <div class="relative aspect-[2/3] rounded-xl overflow-hidden bg-gray-200 shadow-md group-hover:shadow-2xl group-hover:-translate-y-1 transition-all">
+                        <img src="${cover}" class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition">
                     </div>
-                    <div>
-                        <h3 class="font-bold text-xs sm:text-sm leading-tight text-gray-800 dark:text-gray-100 group-hover:text-brand-600 transition line-clamp-2">${book.title}</h3>
-                        <p class="text-[10px] text-gray-500 mt-1">${book.edition}</p>
-                    </div>
-                `;
-                grid.appendChild(card);
+                    <div><h3 class="font-bold text-xs sm:text-sm leading-tight group-hover:text-brand-600 line-clamp-2">${book.title}</h3></div>`;
+                grid.appendChild(el);
             });
         }
 
-        // --- Reader Logic ---
+        // --- Reader Engine (Vertical Scroll) ---
         async function loadBook(book) {
             state.currentBook = book;
             document.getElementById('library-view').classList.add('hidden');
             document.getElementById('reader-view').classList.remove('hidden');
             document.getElementById('readerTitle').textContent = book.title;
-            
-            // Save Recent
             localStorage.setItem('ap3_recent_id', book.id);
 
             try {
-                const loadingTask = pdfjsLib.getDocument(`books/${book.filename}`);
-                state.pdfDoc = await loadingTask.promise;
+                const task = pdfjsLib.getDocument(`books/${book.filename}`);
+                state.pdfDoc = await task.promise;
                 document.getElementById('totalPages').textContent = state.pdfDoc.numPages;
                 
-                // Restore Page
-                const savedPage = parseInt(localStorage.getItem(`ap3_prog_${book.id}`)) || 1;
-                state.pageNum = savedPage;
-                
-                renderPage(state.pageNum);
+                // Build Vertical Layout
+                await buildPageContainers();
                 buildTOC();
                 
+                // Restore Position
+                const savedPage = parseInt(localStorage.getItem(`ap3_prog_${book.id}`)) || 1;
+                scrollToPage(savedPage);
+
             } catch (err) {
-                showToast(`Error: File ${book.filename} not found!`, 'error');
+                showToast(`Error: ${book.filename} not found`, 'error');
                 closeReader();
             }
         }
 
-        function closeReader() {
-            document.getElementById('reader-view').classList.add('hidden');
-            document.getElementById('library-view').classList.remove('hidden');
-            if(state.pdfDoc) { state.pdfDoc.destroy(); state.pdfDoc = null; }
-            toggleSidePanel(null);
-            checkRecentBook(); // Refresh dashboard
-            // Exit focus mode if active
-            document.body.classList.remove('focus-mode');
+        async function buildPageContainers() {
+            const container = document.getElementById('pagesContainer');
+            container.innerHTML = '';
+            state.pageObservers = []; // Clear old observers
+
+            // Get first page to estimate size (Optimization)
+            const firstPage = await state.pdfDoc.getPage(1);
+            const viewport = firstPage.getViewport({scale: state.scale});
+            
+            // Intersection Observer for Lazy Loading
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    const pageNum = parseInt(entry.target.dataset.pageNumber);
+                    if (entry.isIntersecting) {
+                        renderPageIntoContainer(pageNum, entry.target);
+                        updateCurrentPageDisplay(pageNum);
+                    } else {
+                        // Optional: Clear canvas to save memory for very large books
+                        // clearPageContainer(entry.target); 
+                    }
+                });
+            }, { root: document.getElementById('mainScroll'), rootMargin: "200px" });
+
+            // Create Divs for all pages
+            for (let i = 1; i <= state.pdfDoc.numPages; i++) {
+                const div = document.createElement('div');
+                div.className = 'pdf-page-container relative bg-white dark:bg-gray-800 transition-all';
+                div.dataset.pageNumber = i;
+                div.id = `pageContainer${i}`;
+                
+                // Set initial Dimensions
+                div.style.width = `${viewport.width}px`;
+                div.style.height = `${viewport.height}px`;
+                
+                container.appendChild(div);
+                observer.observe(div);
+            }
         }
 
-        function renderPage(num) {
-            state.rendering = true;
-            state.pdfDoc.getPage(num).then(page => {
-                const canvas = document.getElementById('pdfCanvas');
-                const ctx = canvas.getContext('2d');
-                
-                const pixelRatio = window.devicePixelRatio || 1;
+        async function renderPageIntoContainer(pageNum, container) {
+            if(container.querySelector('canvas')) return; // Already rendered
+
+            try {
+                const page = await state.pdfDoc.getPage(pageNum);
                 const viewport = page.getViewport({scale: state.scale});
                 
-                canvas.width = Math.floor(viewport.width * pixelRatio);
-                canvas.height = Math.floor(viewport.height * pixelRatio);
-                canvas.style.width = `${Math.floor(viewport.width)}px`;
-                canvas.style.height = `${Math.floor(viewport.height)}px`;
-                
+                const canvas = document.createElement('canvas');
+                canvas.className = 'block w-full h-full';
+                const ctx = canvas.getContext('2d');
+
+                // High DPI
+                const outputScale = window.devicePixelRatio || 1;
+                canvas.width = Math.floor(viewport.width * outputScale);
+                canvas.height = Math.floor(viewport.height * outputScale);
+                canvas.style.width = Math.floor(viewport.width) + "px";
+                canvas.style.height = Math.floor(viewport.height) + "px";
+
+                container.appendChild(canvas);
+                // Also Check for Invert Mode
+                if(document.getElementById('pdfCanvas')?.classList.contains('pdf-invert') || localStorage.getItem('invertMode') === 'true') {
+                    canvas.classList.add('pdf-invert');
+                }
+
                 const renderContext = {
                     canvasContext: ctx,
-                    transform: pixelRatio !== 1 ? [pixelRatio, 0, 0, pixelRatio, 0, 0] : null,
+                    transform: outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null,
                     viewport: viewport
                 };
                 
-                page.render(renderContext).promise.then(() => {
-                    state.rendering = false;
-                    if(state.pendingPage) { renderPage(state.pendingPage); state.pendingPage = null; }
-                });
-            });
+                await page.render(renderContext).promise;
+            } catch(e) { console.error(e); }
+        }
 
+        function scrollToPage(num) {
+            const el = document.getElementById(`pageContainer${num}`);
+            if(el) el.scrollIntoView({behavior: 'auto', block: 'start'});
             document.getElementById('pageInput').value = num;
-            document.getElementById('prevBtn').disabled = num <= 1;
-            document.getElementById('nextBtn').disabled = num >= state.pdfDoc.numPages;
-            
-            // Auto Save
+        }
+
+        function updateCurrentPageDisplay(num) {
+            // Debounce or logic to prevent rapid flipping numbers
+            // Simple approach: Update input if it's the primary visible page
+            document.getElementById('pageInput').value = num;
             if(state.currentBook) localStorage.setItem(`ap3_prog_${state.currentBook.id}`, num);
         }
 
-        function queueRenderPage(num) {
-            if(state.rendering) state.pendingPage = num;
-            else renderPage(num);
-        }
+        // --- Inputs & Shortcuts ---
+        document.getElementById('pageInput').addEventListener('change', (e) => {
+            let val = parseInt(e.target.value);
+            val = Math.max(1, Math.min(val, state.pdfDoc.numPages));
+            scrollToPage(val);
+        });
 
-        function changePage(delta) {
-            const newPage = state.pageNum + delta;
-            if(newPage >= 1 && newPage <= state.pdfDoc.numPages) {
-                state.pageNum = newPage;
-                queueRenderPage(newPage);
-            }
-        }
-
-        // --- 2. Toast Notification ---
-        function showToast(msg, type='success') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `toast ${type === 'success' ? 'toast-success' : 'toast-error'}`;
-            const icon = type === 'success' ? '✅' : '⚠️';
-            toast.innerHTML = `<i class="not-italic">${icon}</i> <span>${msg}</span>`;
-            container.appendChild(toast);
-            
-            setTimeout(() => toast.classList.add('show'), 10);
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 400);
-            }, 3000);
-        }
-
-        function addBookmark() {
-            showToast(`Bookmark saved at Page ${state.pageNum}`);
-            // In a real app, save to localStorage here
-        }
-
-        // --- 5. Focus Mode ---
+        // --- Rest of features (TOC, Toast, Focus) ---
         function toggleFocusMode() {
             document.body.classList.toggle('focus-mode');
-            if(document.body.classList.contains('focus-mode')) {
-                showToast('Focus Mode On. Press ESC to exit.');
-            }
+            if(document.body.classList.contains('focus-mode')) showToast('Focus Mode On. Press ESC to exit.');
         }
 
-        // --- 3. Keyboard Shortcuts ---
-        function setupShortcuts() {
-            document.addEventListener('keydown', (e) => {
-                // Only work if reader is open
-                if(document.getElementById('reader-view').classList.contains('hidden')) return;
-                
-                // Exit Focus Mode on ESC
-                if(e.key === 'Escape') {
-                    if(document.body.classList.contains('focus-mode')) {
-                        toggleFocusMode();
-                    }
-                }
-
-                // If typing in search box, ignore shortcuts
-                if(document.activeElement.tagName === 'INPUT') {
-                    if(e.key === 'Enter' && document.activeElement.id === 'pageInput') {
-                         const val = parseInt(document.activeElement.value);
-                         if(val) { state.pageNum = val; queueRenderPage(val); document.activeElement.blur(); }
-                    }
-                    return; 
-                }
-
-                if(e.key === 'ArrowRight') changePage(1);
-                if(e.key === 'ArrowLeft') changePage(-1);
-                if(e.key.toLowerCase() === 'b') addBookmark();
-                if(e.key.toLowerCase() === 't') toggleSidePanel('toc');
-                if(e.key.toLowerCase() === 'f') toggleSidePanel('search');
-                if(e.key.toLowerCase() === 'h') toggleFocusMode();
-            });
+        function toggleInvert() {
+            const allCanvas = document.querySelectorAll('canvas');
+            const isInv = allCanvas[0]?.classList.toggle('pdf-invert');
+            allCanvas.forEach(c => c.classList.toggle('pdf-invert', isInv)); // Sync all
+            localStorage.setItem('invertMode', isInv);
         }
 
-        // --- Side Panels ---
-        function toggleSidePanel(mode) {
-            const panel = document.getElementById('sidePanel');
-            const title = document.getElementById('panelTitle');
-            const toc = document.getElementById('tocContent');
-            const search = document.getElementById('searchContent');
-
-            if(!mode || (!panel.classList.contains('-translate-x-full') && title.dataset.mode === mode)) {
-                panel.classList.add('-translate-x-full');
-                return;
-            }
-
-            panel.classList.remove('-translate-x-full');
-            title.dataset.mode = mode;
-            toc.classList.add('hidden');
-            search.classList.add('hidden');
-
-            if(mode === 'toc') { title.textContent = "Contents"; toc.classList.remove('hidden'); }
-            if(mode === 'search') { title.textContent = "Search"; search.classList.remove('hidden'); document.getElementById('searchInputField').focus(); }
-        }
-
-        // --- TOC Builder ---
         async function buildTOC() {
-            const container = document.getElementById('tocContent');
-            container.innerHTML = '';
+            const container = document.getElementById('tocContent'); container.innerHTML = '';
             const outline = await state.pdfDoc.getOutline();
+            if(!outline) { container.innerHTML = '<div class="p-4 text-center text-gray-500">No Contents.</div>'; return; }
             
-            if(!outline) { container.innerHTML = '<div class="p-4 text-center text-gray-500 text-xs">No Chapters Found.</div>'; return; }
-
-            function createTree(items) {
+            function makeTree(items) {
                 const div = document.createElement('div');
                 items.forEach(item => {
-                    const hasChild = item.items && item.items.length > 0;
-                    const node = document.createElement('div');
-                    
                     const row = document.createElement('div');
-                    row.className = "outline-row flex items-center p-2 rounded cursor-pointer text-xs sm:text-sm text-gray-700 dark:text-gray-300";
-                    row.innerHTML = `
-                        <svg class="toggle-icon w-3 h-3 mr-2 ${hasChild?'':'invisible'}" fill="currentColor" viewBox="0 0 20 20"><path d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"/></svg>
-                        <span class="truncate flex-1">${item.title}</span>
-                    `;
-                    
-                    node.appendChild(row);
-
-                    if(hasChild) {
-                        const children = createTree(item.items);
-                        children.className = "children-container";
-                        node.appendChild(children);
-                        row.querySelector('.toggle-icon').onclick = (e) => {
-                            e.stopPropagation();
-                            children.classList.toggle('open');
-                            e.target.classList.toggle('expanded');
-                        };
-                    }
-
+                    row.className = "outline-row p-2 cursor-pointer text-sm truncate hover:bg-brand-50 dark:hover:bg-gray-700 rounded";
+                    row.textContent = item.title;
                     row.onclick = async () => {
-                        const dest = item.dest;
-                        let pageRef = Array.isArray(dest) ? dest[0] : dest;
-                        if(typeof dest === 'string') { const d = await state.pdfDoc.getDestination(dest); pageRef = d[0]; }
-                        const idx = await state.pdfDoc.getPageIndex(pageRef);
-                        state.pageNum = idx + 1;
-                        queueRenderPage(state.pageNum);
-                        if(window.innerWidth < 768) toggleSidePanel(null);
+                        const dest = await state.pdfDoc.getDestination(item.dest);
+                        const idx = await state.pdfDoc.getPageIndex(dest[0]);
+                        scrollToPage(idx + 1);
+                        toggleSidePanel(null);
                     };
-                    div.appendChild(node);
+                    div.appendChild(row);
+                    if(item.items.length > 0) {
+                         const kids = makeTree(item.items);
+                         kids.className = "pl-4 border-l border-gray-200 dark:border-gray-700 ml-2";
+                         div.appendChild(kids);
+                    }
                 });
                 return div;
             }
-            container.appendChild(createTree(outline));
+            container.appendChild(makeTree(outline));
         }
 
-        // --- Search Engine ---
-        async function performSearch() {
-            if(state.searchActive) return;
-            const query = document.getElementById('searchInputField').value.toLowerCase();
-            if(query.length < 3) { showToast('Type at least 3 letters', 'error'); return; }
-
-            const list = document.getElementById('searchResultsList');
-            const status = document.getElementById('searchStatus');
-            list.innerHTML = '';
-            state.searchActive = true;
-            status.textContent = 'Searching...';
-
-            let count = 0;
-            const maxScan = Math.min(state.pdfDoc.numPages, 50); // Scan first 50 pages for demo
-
-            for(let i=1; i<=maxScan; i++) {
-                if(document.getElementById('sidePanel').classList.contains('-translate-x-full')) break;
-                
-                const page = await state.pdfDoc.getPage(i);
-                const content = await page.getTextContent();
-                const text = content.items.map(item => item.str).join(' ');
-                
-                if(text.toLowerCase().includes(query)) {
-                    count++;
-                    const snippetIdx = text.toLowerCase().indexOf(query);
-                    const snippet = text.substring(Math.max(0, snippetIdx - 20), Math.min(text.length, snippetIdx + 50));
-                    
-                    const item = document.createElement('div');
-                    item.className = "p-2 bg-gray-50 dark:bg-gray-800 rounded border border-gray-100 dark:border-gray-700 cursor-pointer hover:border-brand-500 mb-2";
-                    item.innerHTML = `
-                        <div class="flex justify-between items-center mb-1"><span class="text-xs font-bold text-brand-600">Page ${i}</span></div>
-                        <div class="text-xs text-gray-500 leading-relaxed">...${snippet}...</div>
-                    `;
-                    item.onclick = () => { state.pageNum = i; queueRenderPage(i); };
-                    list.appendChild(item);
-                }
-                
-                if(i % 5 === 0) status.textContent = `Scanning ${i}...`;
-                if(i % 10 === 0) await new Promise(r => setTimeout(r, 0));
+        // --- Common Utils ---
+        function closeReader() {
+            document.getElementById('reader-view').classList.add('hidden');
+            document.getElementById('library-view').classList.remove('hidden');
+            state.pdfDoc.destroy(); state.pdfDoc = null;
+            document.getElementById('pagesContainer').innerHTML = ''; // Clean Memory
+            checkRecentBook();
+        }
+        function toggleSidePanel(id) {
+            const p = document.getElementById('sidePanel');
+            if(!id) p.classList.add('-translate-x-full');
+            else p.classList.remove('-translate-x-full');
+        }
+        function showToast(msg, type='success') {
+            const c = document.getElementById('toast-container');
+            const t = document.createElement('div');
+            t.className = "toast"; t.innerHTML = `<span>${type=='success'?'✅':'⚠️'}</span><span>${msg}</span>`;
+            c.appendChild(t);
+            setTimeout(()=>t.classList.add('show'),10); setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),400)},3000);
+        }
+        function toggleTheme() { document.documentElement.classList.toggle('dark'); localStorage.setItem('theme', document.documentElement.classList.contains('dark')?'dark':'light'); }
+        function initTheme() { if(localStorage.getItem('theme')==='dark') document.documentElement.classList.add('dark'); }
+        function checkRecentBook() {
+            const id = localStorage.getItem('ap3_recent_id');
+            const book = libraryDB.find(b=>b.id===id);
+            if(book) {
+                document.getElementById('recentSection').classList.remove('hidden');
+                document.getElementById('recentTitle').textContent = book.title;
+                document.getElementById('continueReadingCard').onclick = () => loadBook(book);
+                document.getElementById('recentCover').src = book.coverId ? `https://drive.google.com/thumbnail?id=${book.coverId}&sz=w400` : `https://placehold.co/400?text=Book`;
+                document.getElementById('recentPage').textContent = "Page " + (localStorage.getItem(`ap3_prog_${id}`)||1);
             }
-            status.textContent = `Found ${count} matches.`;
-            state.searchActive = false;
         }
-        document.getElementById('searchInputField').addEventListener('keypress', (e) => { if(e.key === 'Enter') performSearch(); });
-
-        // --- UI Utils ---
-        document.getElementById('prevBtn').onclick = () => changePage(-1);
-        document.getElementById('nextBtn').onclick = () => changePage(1);
-
-        function toggleTheme() {
-            document.documentElement.classList.toggle('dark');
-            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        function addBookmark() { showToast(`Bookmark saved at Page ${document.getElementById('pageInput').value}`); }
+        function setupShortcuts() {
+            document.addEventListener('keydown', (e) => {
+                if(document.getElementById('reader-view').classList.contains('hidden')) return;
+                if(e.key === 'Escape') { if(document.body.classList.contains('focus-mode')) toggleFocusMode(); }
+                if(e.target.tagName === 'INPUT') return;
+                if(e.key.toLowerCase() === 'h') toggleFocusMode();
+                if(e.key.toLowerCase() === 't') toggleSidePanel('toc');
+                if(e.key.toLowerCase() === 'b') addBookmark();
+            });
         }
-        function initTheme() {
-            if(localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('dark');
-        }
-        function toggleInvert() { document.getElementById('pdfCanvas').classList.toggle('pdf-invert'); }
-
-        // Filter Logic
-        document.getElementById('filterTabs').addEventListener('click', (e) => {
-            if(e.target.tagName === 'BUTTON') {
-                document.querySelectorAll('#filterTabs button').forEach(b => {
-                    b.classList.remove('bg-white', 'text-brand-600', 'shadow-sm');
-                    b.classList.add('text-gray-500', 'hover:text-gray-900');
-                });
-                e.target.classList.remove('text-gray-500', 'hover:text-gray-900');
-                e.target.classList.add('bg-white', 'dark:bg-gray-600', 'text-brand-600', 'dark:text-white', 'shadow-sm');
-                renderLibrary(e.target.dataset.cat, document.getElementById('globalSearch').value);
-            }
-        });
-        document.getElementById('globalSearch').addEventListener('input', (e) => {
-            renderLibrary('all', e.target.value);
-        });
-
+        document.getElementById('globalSearch').addEventListener('input', (e) => renderLibrary('all', e.target.value));
+        document.getElementById('filterTabs').addEventListener('click', (e) => { if(e.target.tagName==='BUTTON') renderLibrary(e.target.dataset.cat, document.getElementById('globalSearch').value); });
     </script>
 </body>
 </html>
