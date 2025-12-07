@@ -28,90 +28,140 @@
     <style>
         body { font-family: 'Inter', sans-serif; }
         
-        /* Glassmorphism Utilities */
-        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.3); }
-        .dark .glass { background: rgba(15, 23, 42, 0.7); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        /* 4. Glassmorphism Design */
+        .glass {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255,255,255,0.3);
+        }
+        .dark .glass {
+            background: rgba(30, 41, 59, 0.75);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
         
         /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .dark ::-webkit-scrollbar-thumb { background: #334155; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
 
         /* Animations */
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         
         /* Night Mode Filter */
-        .pdf-invert { filter: invert(0.9) hue-rotate(180deg) grayscale(0.2) contrast(1.2); }
+        .pdf-invert { filter: invert(0.92) hue-rotate(180deg) grayscale(0.2) contrast(1.1); }
 
-        /* Toast Notification */
-        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 100; display: flex; flex-direction: column; gap: 10px; }
-        .toast { background: #1e293b; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); display: flex; items-center; gap: 10px; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .toast.show { transform: translateX(0); }
-        .toast-success { border-left: 4px solid #22c55e; }
-        .toast-error { border-left: 4px solid #ef4444; }
+        /* 2. Toast Notifications */
+        #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 100; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .toast { pointer-events: auto; background: #1e293b; color: white; padding: 12px 20px; border-radius: 12px; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.3); display: flex; items-center; gap: 12px; transform: translateX(100%); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s; opacity: 0; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.1); }
+        .toast.show { transform: translateX(0); opacity: 1; }
+        .toast-success i { color: #4ade80; }
+        .toast-error i { color: #f87171; }
 
-        /* Tree View */
+        /* Tree View (TOC) */
+        .outline-row { transition: 0.15s; }
         .outline-row:hover { background-color: rgba(2, 132, 199, 0.1); color: #0284c7; }
         .toggle-icon { transition: transform 0.2s; }
         .toggle-icon.expanded { transform: rotate(90deg); }
         .children-container { display: none; padding-left: 14px; border-left: 1px solid #e2e8f0; margin-left: 6px; }
         .dark .children-container { border-color: #334155; }
         .children-container.open { display: block; }
+
+        /* 5. Focus Mode Hide Classes */
+        body.focus-mode header, 
+        body.focus-mode #sidePanel, 
+        body.focus-mode #prevBtn, 
+        body.focus-mode #nextBtn { 
+            display: none !important; 
+        }
+        body.focus-mode #mainScroll {
+            background-color: #111; /* Dark background for focus */
+        }
+        /* Floating Exit Button for Focus Mode */
+        #exitFocusBtn { display: none; }
+        body.focus-mode #exitFocusBtn { display: flex; }
+
     </style>
 </head>
 <body class="bg-gray-50 dark:bg-darkbg text-gray-900 dark:text-gray-100 transition-colors duration-300 h-screen flex flex-col overflow-hidden selection:bg-brand-500 selection:text-white">
 
     <div id="toast-container"></div>
 
+    <button id="exitFocusBtn" onclick="toggleFocusMode()" class="fixed top-4 right-4 z-50 bg-white/10 backdrop-blur-md text-white px-4 py-2 rounded-full border border-white/20 hover:bg-white/20 transition shadow-xl items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        <span class="text-xs font-bold">Exit Focus (ESC)</span>
+    </button>
+
     <div id="library-view" class="flex flex-col h-full overflow-y-auto">
         
         <header class="sticky top-0 z-40 glass w-full">
-            <div class="container mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="container mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 bg-gradient-to-br from-brand-500 to-brand-700 rounded-lg flex items-center justify-center text-white font-bold shadow-lg shadow-brand-500/30">
+                    <div class="w-9 h-9 bg-gradient-to-br from-brand-500 to-brand-700 rounded-xl flex items-center justify-center text-white font-bold shadow-lg shadow-brand-500/20">
                         AP
                     </div>
-                    <h1 class="text-xl font-bold tracking-tight">Anesthesia <span class="text-brand-600 dark:text-brand-400">Pro</span></h1>
+                    <h1 class="text-xl font-bold tracking-tight hidden sm:block">Anesthesia <span class="text-brand-600 dark:text-brand-400">Pro</span></h1>
                 </div>
                 
-                <div class="flex items-center gap-4">
-                    <div class="hidden md:flex items-center bg-gray-100 dark:bg-card px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center gap-3">
+                    <div class="hidden md:flex items-center bg-gray-100 dark:bg-card px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-700 focus-within:ring-2 ring-brand-500/50 transition">
                         <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                        <input id="globalSearch" type="text" placeholder="Quick find..." class="bg-transparent border-none focus:ring-0 text-sm w-48 ml-2 dark:text-gray-200">
+                        <input id="globalSearch" type="text" placeholder="Search library..." class="bg-transparent border-none focus:ring-0 text-xs w-48 ml-2 dark:text-gray-200 placeholder-gray-500">
                     </div>
-                    <button onclick="toggleTheme()" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition">
-                        <svg id="themeIcon" class="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                    <button onclick="toggleTheme()" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition text-gray-500">
+                        <svg id="themeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
                     </button>
                 </div>
             </div>
         </header>
 
-        <main class="container mx-auto px-6 py-8 flex-grow space-y-10">
+        <main class="container mx-auto px-4 sm:px-6 py-8 flex-grow space-y-10">
             
-            <section id="recentSection" class="animate-fade-in">
-                <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
-                    <span>👋 Welcome Back, Doctor</span>
-                </h2>
-                <div id="continueReadingCard" class="hidden bg-white dark:bg-card p-6 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row gap-6 items-center sm:items-start transition hover:border-brand-500/50">
+            <section id="recentSection" class="hidden animate-slide-up">
+                <div class="flex items-center justify-between mb-4">
+                     <h2 class="text-lg font-bold flex items-center gap-2 text-gray-800 dark:text-gray-100">
+                        <span>⚡ Jump Back In</span>
+                    </h2>
+                </div>
+               
+                <div id="continueReadingCard" class="bg-white dark:bg-card p-5 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 flex gap-5 items-center relative overflow-hidden group cursor-pointer transition hover:border-brand-500/30">
+                    <div class="absolute -right-10 -top-10 w-32 h-32 bg-brand-500/10 rounded-full blur-3xl group-hover:bg-brand-500/20 transition"></div>
+                    
+                    <div class="w-16 h-24 sm:w-20 sm:h-28 rounded-lg bg-gray-200 shadow-md flex-shrink-0 overflow-hidden relative">
+                         <img id="recentCover" src="" class="w-full h-full object-cover">
                     </div>
+                    <div class="flex-1 z-10">
+                        <div class="flex justify-between items-start">
+                             <div>
+                                <h3 id="recentTitle" class="text-base sm:text-lg font-bold text-gray-900 dark:text-white leading-tight mb-1">Book Title</h3>
+                                <p id="recentPage" class="text-xs sm:text-sm text-gray-500 font-medium">Page 45</p>
+                             </div>
+                             <button id="recentResumeBtn" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold shadow-lg shadow-brand-500/30 transition transform group-hover:scale-105">
+                                Resume
+                             </button>
+                        </div>
+                        <div class="w-full bg-gray-100 dark:bg-gray-700 h-1.5 rounded-full mt-3 overflow-hidden">
+                            <div class="bg-brand-500 h-full rounded-full" style="width: 35%"></div>
+                        </div>
+                    </div>
+                </div>
             </section>
 
-            <section class="animate-fade-in" style="animation-delay: 0.1s;">
-                <div class="flex justify-between items-end mb-6">
+            <section class="animate-slide-up" style="animation-delay: 0.1s;">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                     <div>
-                        <h2 class="text-xl font-bold">Library Collection</h2>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">Essential references for residency & practice.</p>
+                        <h2 class="text-lg font-bold">Library</h2>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">All your references in one place.</p>
                     </div>
-                    <div class="flex gap-2" id="filterTabs">
-                        <button class="px-4 py-1.5 rounded-full text-xs font-semibold bg-brand-600 text-white shadow-lg shadow-brand-600/20 transition hover:scale-105 active" data-cat="all">All</button>
-                        <button class="px-4 py-1.5 rounded-full text-xs font-semibold bg-white dark:bg-card border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition" data-cat="major">Major</button>
-                        <button class="px-4 py-1.5 rounded-full text-xs font-semibold bg-white dark:bg-card border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition" data-cat="review">Review</button>
+                    <div class="flex gap-2 p-1 bg-gray-100 dark:bg-card rounded-lg" id="filterTabs">
+                        <button class="px-4 py-1.5 rounded-md text-xs font-bold bg-white dark:bg-gray-600 text-brand-600 dark:text-white shadow-sm transition" data-cat="all">All</button>
+                        <button class="px-4 py-1.5 rounded-md text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition" data-cat="new">New</button>
+                        <button class="px-4 py-1.5 rounded-md text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition" data-cat="major">Major</button>
                     </div>
                 </div>
 
-                <div id="booksGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+                <div id="booksGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-6 gap-y-10">
                     </div>
             </section>
         </main>
@@ -119,32 +169,38 @@
 
     <div id="reader-view" class="hidden fixed inset-0 z-50 bg-gray-100 dark:bg-darkbg flex flex-col">
         
-        <header class="h-14 glass flex items-center justify-between px-4 z-20 shadow-sm shrink-0">
+        <header id="readerHeader" class="h-14 glass flex items-center justify-between px-4 z-20 shadow-sm shrink-0 transition-transform duration-300">
             <div class="flex items-center gap-3">
                 <button onclick="closeReader()" class="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition text-gray-600 dark:text-gray-300 flex items-center gap-2 group">
                     <svg class="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                    <span class="text-sm font-medium hidden sm:inline">Library</span>
+                    <span class="text-xs font-bold uppercase tracking-wide hidden sm:inline">Library</span>
                 </button>
                 <div class="h-6 w-px bg-gray-300 dark:bg-gray-700"></div>
-                <h2 id="readerTitle" class="text-sm font-bold truncate max-w-[150px] sm:max-w-md text-brand-700 dark:text-brand-400"></h2>
+                <h2 id="readerTitle" class="text-xs sm:text-sm font-bold truncate max-w-[120px] sm:max-w-md text-gray-800 dark:text-gray-200"></h2>
             </div>
 
-            <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2 bg-white dark:bg-card shadow-sm border border-gray-200 dark:border-gray-700 rounded-lg p-1">
-                <button id="prevBtn" class="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
-                <input type="number" id="pageInput" class="w-12 text-center text-xs font-mono bg-transparent border-none focus:ring-0 appearance-none m-0" value="1">
-                <span class="text-xs text-gray-400 select-none">/ <span id="totalPages">--</span></span>
-                <button id="nextBtn" class="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
+            <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-1 bg-white dark:bg-card shadow-sm border border-gray-200 dark:border-gray-700 rounded-lg p-1">
+                <button id="prevBtn" class="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+                <input type="number" id="pageInput" class="w-10 text-center text-xs font-mono bg-transparent border-none focus:ring-0 appearance-none m-0 font-bold" value="1">
+                <span class="text-xs text-gray-400 select-none mr-2">/ <span id="totalPages">--</span></span>
+                <button id="nextBtn" class="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
             </div>
 
-            <div class="flex items-center gap-2">
-                <button onclick="toggleSidePanel('toc')" class="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 relative group" title="Table of Contents (T)">
-                    <svg class="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            <div class="flex items-center gap-1 sm:gap-2">
+                <button onclick="toggleFocusMode()" class="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300" title="Focus Mode (H)">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                 </button>
-                <button onclick="toggleSidePanel('search')" class="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700" title="Search (F)">
-                    <svg class="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                
+                <div class="h-6 w-px bg-gray-300 dark:bg-gray-700 mx-1"></div>
+
+                <button onclick="toggleSidePanel('toc')" class="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300" title="Contents (T)">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 </button>
-                <button onclick="toggleInvert()" class="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700" title="Night Reading">
-                    <svg class="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                <button onclick="toggleSidePanel('search')" class="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300" title="Search (F)">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </button>
+                <button onclick="toggleInvert()" class="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300" title="Night Mode">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
                 </button>
                 <button onclick="addBookmark()" class="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-yellow-500" title="Bookmark (B)">
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
@@ -154,8 +210,8 @@
 
         <div class="flex flex-1 overflow-hidden relative">
             
-            <aside id="sidePanel" class="absolute left-0 top-0 bottom-0 w-80 bg-white dark:bg-card border-r border-gray-200 dark:border-gray-700 z-30 transform -translate-x-full transition-transform duration-300 shadow-2xl flex flex-col">
-                <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-800">
+            <aside id="sidePanel" class="absolute left-0 top-0 bottom-0 w-80 bg-white/95 backdrop-blur dark:bg-card/95 border-r border-gray-200 dark:border-gray-700 z-30 transform -translate-x-full transition-transform duration-300 shadow-2xl flex flex-col">
+                <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/50">
                     <h3 id="panelTitle" class="font-bold text-gray-700 dark:text-gray-200 uppercase text-xs tracking-wider">Contents</h3>
                     <button onclick="toggleSidePanel(null)" class="text-gray-400 hover:text-red-500"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
                 </div>
@@ -164,8 +220,8 @@
                 
                 <div id="searchContent" class="panel-content flex-1 overflow-y-auto p-3 hidden flex-col">
                     <div class="flex gap-2 mb-3">
-                        <input id="searchInputField" type="text" placeholder="Search text..." class="flex-1 bg-gray-100 dark:bg-darkbg border-none rounded text-sm px-3 py-2 focus:ring-1 focus:ring-brand-500">
-                        <button onclick="performSearch()" class="bg-brand-600 text-white px-3 rounded hover:bg-brand-700">Go</button>
+                        <input id="searchInputField" type="text" placeholder="Type keyword..." class="flex-1 bg-gray-100 dark:bg-darkbg border-none rounded text-sm px-3 py-2 focus:ring-1 focus:ring-brand-500">
+                        <button onclick="performSearch()" class="bg-brand-600 text-white px-3 rounded hover:bg-brand-700 text-sm font-bold">Go</button>
                     </div>
                     <div id="searchStatus" class="text-xs text-gray-500 mb-2"></div>
                     <div id="searchResultsList" class="space-y-2"></div>
@@ -182,30 +238,28 @@
 
     <script>
         // ==========================================
-        // 📚 LIBRARY CONFIGURATION (EDIT HERE)
+        // 📚 YOUR BOOKS CONFIGURATION
         // ==========================================
         const libraryDB = [
             {
                 id: "miller_rev_25",
                 title: "Miller's Anesthesia Review",
                 edition: "2025 Edition",
-                category: "review",
-                filename: "millers_anesthesia_review_2025.pdf", // Must match file in 'books' folder
+                category: "new",
+                filename: "millers_anesthesia_review_2025.pdf", // Matches file in 'books' folder
                 coverId: "1-coD-Ij1XH2lE7hCbcb8H6T7xTYCzmTM"
             },
             {
-                id: "barash_clin_9",
+                id: "barash_9",
                 title: "Clinical Anesthesia (Barash)",
                 edition: "9th Edition",
                 category: "major",
                 filename: "barash_clinical.pdf",
                 coverId: "1-fxhXAtaOtazkfIwMnDCe5Gh4y7Lmeg2"
             }
-            // Add more books here...
         ];
         // ==========================================
 
-        // --- State Management ---
         const state = {
             pdfDoc: null,
             pageNum: 1,
@@ -213,8 +267,7 @@
             rendering: false,
             pendingPage: null,
             currentBook: null,
-            searchActive: false,
-            bookmarks: JSON.parse(localStorage.getItem('ap3_bookmarks') || '[]')
+            searchActive: false
         };
 
         // --- Init ---
@@ -225,7 +278,30 @@
             setupShortcuts();
         });
 
-        // --- Library Logic ---
+        // --- 1. Dashboard & Recent Book Logic ---
+        function checkRecentBook() {
+            const recentId = localStorage.getItem('ap3_recent_id');
+            const section = document.getElementById('recentSection');
+            if(!recentId) return;
+            
+            const book = libraryDB.find(b => b.id === recentId);
+            if(!book) return;
+
+            const lastPage = localStorage.getItem(`ap3_prog_${recentId}`) || 1;
+            
+            section.classList.remove('hidden');
+            document.getElementById('recentTitle').textContent = book.title;
+            document.getElementById('recentPage').textContent = `Stopped at Page ${lastPage}`;
+            
+            const coverUrl = book.coverId ? `https://drive.google.com/thumbnail?id=${book.coverId}&sz=w400` : `https://placehold.co/400x600/e2e8f0/64748b?text=Book`;
+            document.getElementById('recentCover').src = coverUrl;
+
+            // Setup Click to Resume
+            const card = document.getElementById('continueReadingCard');
+            card.onclick = () => loadBook(book);
+        }
+
+        // --- Library Render ---
         function renderLibrary(cat = 'all', query = '') {
             const grid = document.getElementById('booksGrid');
             grid.innerHTML = '';
@@ -243,58 +319,22 @@
                 
                 const coverUrl = book.coverId 
                     ? `https://drive.google.com/thumbnail?id=${book.coverId}&sz=w600` 
-                    : `https://placehold.co/400x600/e2e8f0/64748b?text=${book.title.substring(0,10)}`;
+                    : `https://placehold.co/400x600/e2e8f0/64748b?text=${book.title.substring(0,5)}`;
 
                 card.innerHTML = `
-                    <div class="relative aspect-[2/3] rounded-xl overflow-hidden bg-gray-200 dark:bg-gray-800 shadow-md group-hover:shadow-2xl group-hover:-translate-y-2 transition-all duration-300">
+                    <div class="relative aspect-[2/3] rounded-xl overflow-hidden bg-gray-200 dark:bg-gray-800 shadow-md group-hover:shadow-2xl group-hover:-translate-y-1 transition-all duration-300">
                         <img src="${coverUrl}" class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition" loading="lazy">
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition flex items-end p-4">
-                            <span class="text-white text-xs font-bold bg-brand-600 px-2 py-1 rounded-full">Read Now</span>
-                        </div>
                     </div>
                     <div>
-                        <h3 class="font-bold text-sm leading-tight text-gray-800 dark:text-gray-100 group-hover:text-brand-600 transition">${book.title}</h3>
-                        <p class="text-xs text-gray-500 mt-1">${book.edition}</p>
+                        <h3 class="font-bold text-xs sm:text-sm leading-tight text-gray-800 dark:text-gray-100 group-hover:text-brand-600 transition line-clamp-2">${book.title}</h3>
+                        <p class="text-[10px] text-gray-500 mt-1">${book.edition}</p>
                     </div>
                 `;
                 grid.appendChild(card);
             });
         }
 
-        // --- "Continue Reading" Logic ---
-        function checkRecentBook() {
-            const recentId = localStorage.getItem('ap3_recent_id');
-            if(!recentId) return;
-            
-            const book = libraryDB.find(b => b.id === recentId);
-            if(!book) return;
-
-            const lastPage = localStorage.getItem(`ap3_prog_${recentId}`) || 1;
-            const container = document.getElementById('recentSection');
-            const card = document.getElementById('continueReadingCard');
-            
-            card.classList.remove('hidden');
-            card.innerHTML = `
-                <div class="w-20 sm:w-24 aspect-[2/3] rounded-lg bg-gray-200 shadow-md flex-shrink-0 overflow-hidden">
-                    <img src="https://drive.google.com/thumbnail?id=${book.coverId}&sz=w400" class="w-full h-full object-cover">
-                </div>
-                <div class="flex-1">
-                    <div class="text-xs font-bold text-brand-600 mb-1 uppercase tracking-wider">Continue Reading</div>
-                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-1">${book.title}</h3>
-                    <p class="text-sm text-gray-500 mb-4">You left off at page <span class="font-mono font-bold text-gray-700 dark:text-gray-300">${lastPage}</span></p>
-                    <button onclick="loadBookById('${book.id}')" class="bg-brand-600 hover:bg-brand-700 text-white px-6 py-2 rounded-lg text-sm font-medium shadow-lg shadow-brand-500/30 transition transform hover:scale-105">
-                        Resume
-                    </button>
-                </div>
-            `;
-        }
-
-        function loadBookById(id) {
-            const book = libraryDB.find(b => b.id === id);
-            if(book) loadBook(book);
-        }
-
-        // --- Reader Engine ---
+        // --- Reader Logic ---
         async function loadBook(book) {
             state.currentBook = book;
             document.getElementById('library-view').classList.add('hidden');
@@ -317,7 +357,7 @@
                 buildTOC();
                 
             } catch (err) {
-                showToast(`Error loading file: ${book.filename}`, 'error');
+                showToast(`Error: File ${book.filename} not found!`, 'error');
                 closeReader();
             }
         }
@@ -327,7 +367,9 @@
             document.getElementById('library-view').classList.remove('hidden');
             if(state.pdfDoc) { state.pdfDoc.destroy(); state.pdfDoc = null; }
             toggleSidePanel(null);
-            checkRecentBook(); // Refresh recent card
+            checkRecentBook(); // Refresh dashboard
+            // Exit focus mode if active
+            document.body.classList.remove('focus-mode');
         }
 
         function renderPage(num) {
@@ -336,7 +378,6 @@
                 const canvas = document.getElementById('pdfCanvas');
                 const ctx = canvas.getContext('2d');
                 
-                // High DPI Rendering
                 const pixelRatio = window.devicePixelRatio || 1;
                 const viewport = page.getViewport({scale: state.scale});
                 
@@ -357,7 +398,6 @@
                 });
             });
 
-            // Update UI
             document.getElementById('pageInput').value = num;
             document.getElementById('prevBtn').disabled = num <= 1;
             document.getElementById('nextBtn').disabled = num >= state.pdfDoc.numPages;
@@ -379,58 +419,105 @@
             }
         }
 
-        document.getElementById('prevBtn').onclick = () => changePage(-1);
-        document.getElementById('nextBtn').onclick = () => changePage(1);
-        document.getElementById('pageInput').onchange = (e) => {
-            const val = parseInt(e.target.value);
-            if(val >= 1 && val <= state.pdfDoc.numPages) { state.pageNum = val; queueRenderPage(val); }
-        };
+        // --- 2. Toast Notification ---
+        function showToast(msg, type='success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type === 'success' ? 'toast-success' : 'toast-error'}`;
+            const icon = type === 'success' ? '✅' : '⚠️';
+            toast.innerHTML = `<i class="not-italic">${icon}</i> <span>${msg}</span>`;
+            container.appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400);
+            }, 3000);
+        }
 
-        // --- Side Panel (TOC & Search) ---
+        function addBookmark() {
+            showToast(`Bookmark saved at Page ${state.pageNum}`);
+            // In a real app, save to localStorage here
+        }
+
+        // --- 5. Focus Mode ---
+        function toggleFocusMode() {
+            document.body.classList.toggle('focus-mode');
+            if(document.body.classList.contains('focus-mode')) {
+                showToast('Focus Mode On. Press ESC to exit.');
+            }
+        }
+
+        // --- 3. Keyboard Shortcuts ---
+        function setupShortcuts() {
+            document.addEventListener('keydown', (e) => {
+                // Only work if reader is open
+                if(document.getElementById('reader-view').classList.contains('hidden')) return;
+                
+                // Exit Focus Mode on ESC
+                if(e.key === 'Escape') {
+                    if(document.body.classList.contains('focus-mode')) {
+                        toggleFocusMode();
+                    }
+                }
+
+                // If typing in search box, ignore shortcuts
+                if(document.activeElement.tagName === 'INPUT') {
+                    if(e.key === 'Enter' && document.activeElement.id === 'pageInput') {
+                         const val = parseInt(document.activeElement.value);
+                         if(val) { state.pageNum = val; queueRenderPage(val); document.activeElement.blur(); }
+                    }
+                    return; 
+                }
+
+                if(e.key === 'ArrowRight') changePage(1);
+                if(e.key === 'ArrowLeft') changePage(-1);
+                if(e.key.toLowerCase() === 'b') addBookmark();
+                if(e.key.toLowerCase() === 't') toggleSidePanel('toc');
+                if(e.key.toLowerCase() === 'f') toggleSidePanel('search');
+                if(e.key.toLowerCase() === 'h') toggleFocusMode();
+            });
+        }
+
+        // --- Side Panels ---
         function toggleSidePanel(mode) {
             const panel = document.getElementById('sidePanel');
             const title = document.getElementById('panelTitle');
             const toc = document.getElementById('tocContent');
             const search = document.getElementById('searchContent');
 
-            if(!mode) {
+            if(!mode || (!panel.classList.contains('-translate-x-full') && title.dataset.mode === mode)) {
                 panel.classList.add('-translate-x-full');
                 return;
             }
 
             panel.classList.remove('-translate-x-full');
+            title.dataset.mode = mode;
             toc.classList.add('hidden');
             search.classList.add('hidden');
 
-            if(mode === 'toc') {
-                title.textContent = "Table of Contents";
-                toc.classList.remove('hidden');
-            } else if (mode === 'search') {
-                title.textContent = "Search in Document";
-                search.classList.remove('hidden');
-                document.getElementById('searchInputField').focus();
-            }
+            if(mode === 'toc') { title.textContent = "Contents"; toc.classList.remove('hidden'); }
+            if(mode === 'search') { title.textContent = "Search"; search.classList.remove('hidden'); document.getElementById('searchInputField').focus(); }
         }
 
-        // --- Smart TOC ---
+        // --- TOC Builder ---
         async function buildTOC() {
             const container = document.getElementById('tocContent');
             container.innerHTML = '';
             const outline = await state.pdfDoc.getOutline();
             
-            if(!outline) { container.innerHTML = '<div class="p-4 text-center text-gray-500 text-sm">No Table of Contents found.</div>'; return; }
+            if(!outline) { container.innerHTML = '<div class="p-4 text-center text-gray-500 text-xs">No Chapters Found.</div>'; return; }
 
             function createTree(items) {
                 const div = document.createElement('div');
                 items.forEach(item => {
                     const hasChild = item.items && item.items.length > 0;
                     const node = document.createElement('div');
-                    node.className = "flex flex-col";
                     
                     const row = document.createElement('div');
-                    row.className = "outline-row flex items-center p-2 rounded cursor-pointer text-sm text-gray-700 dark:text-gray-300 transition";
+                    row.className = "outline-row flex items-center p-2 rounded cursor-pointer text-xs sm:text-sm text-gray-700 dark:text-gray-300";
                     row.innerHTML = `
-                        <svg class="toggle-icon w-3 h-3 mr-2 ${hasChild?'':'invisible text-transparent'}" fill="currentColor" viewBox="0 0 20 20"><path d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"/></svg>
+                        <svg class="toggle-icon w-3 h-3 mr-2 ${hasChild?'':'invisible'}" fill="currentColor" viewBox="0 0 20 20"><path d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"/></svg>
                         <span class="truncate flex-1">${item.title}</span>
                     `;
                     
@@ -467,20 +554,19 @@
         async function performSearch() {
             if(state.searchActive) return;
             const query = document.getElementById('searchInputField').value.toLowerCase();
-            if(query.length < 3) { showToast('Enter at least 3 chars', 'error'); return; }
+            if(query.length < 3) { showToast('Type at least 3 letters', 'error'); return; }
 
             const list = document.getElementById('searchResultsList');
             const status = document.getElementById('searchStatus');
             list.innerHTML = '';
             state.searchActive = true;
-            status.textContent = 'Scanning...';
+            status.textContent = 'Searching...';
 
             let count = 0;
-            // Scan first 100 pages for demo performance (can be increased)
-            const maxScan = Math.min(state.pdfDoc.numPages, 100); 
+            const maxScan = Math.min(state.pdfDoc.numPages, 50); // Scan first 50 pages for demo
 
             for(let i=1; i<=maxScan; i++) {
-                if(!document.getElementById('sidePanel').classList.contains('-translate-x-full') === false) break; // Stop if closed
+                if(document.getElementById('sidePanel').classList.contains('-translate-x-full')) break;
                 
                 const page = await state.pdfDoc.getPage(i);
                 const content = await page.getTextContent();
@@ -492,28 +578,27 @@
                     const snippet = text.substring(Math.max(0, snippetIdx - 20), Math.min(text.length, snippetIdx + 50));
                     
                     const item = document.createElement('div');
-                    item.className = "p-2 bg-gray-50 dark:bg-gray-800 rounded border border-gray-100 dark:border-gray-700 cursor-pointer hover:border-brand-500";
+                    item.className = "p-2 bg-gray-50 dark:bg-gray-800 rounded border border-gray-100 dark:border-gray-700 cursor-pointer hover:border-brand-500 mb-2";
                     item.innerHTML = `
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="text-xs font-bold text-brand-600">Page ${i}</span>
-                        </div>
+                        <div class="flex justify-between items-center mb-1"><span class="text-xs font-bold text-brand-600">Page ${i}</span></div>
                         <div class="text-xs text-gray-500 leading-relaxed">...${snippet}...</div>
                     `;
                     item.onclick = () => { state.pageNum = i; queueRenderPage(i); };
                     list.appendChild(item);
                 }
                 
-                if(i % 10 === 0) status.textContent = `Scanned ${i} pages... Found ${count}`;
-                if(i % 20 === 0) await new Promise(r => setTimeout(r, 0)); // Breathe
+                if(i % 5 === 0) status.textContent = `Scanning ${i}...`;
+                if(i % 10 === 0) await new Promise(r => setTimeout(r, 0));
             }
-            
-            status.textContent = `Done. Found ${count} results (in first ${maxScan} pages).`;
+            status.textContent = `Found ${count} matches.`;
             state.searchActive = false;
         }
-
         document.getElementById('searchInputField').addEventListener('keypress', (e) => { if(e.key === 'Enter') performSearch(); });
 
-        // --- Utilities ---
+        // --- UI Utils ---
+        document.getElementById('prevBtn').onclick = () => changePage(-1);
+        document.getElementById('nextBtn').onclick = () => changePage(1);
+
         function toggleTheme() {
             document.documentElement.classList.toggle('dark');
             localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
@@ -522,56 +607,21 @@
             if(localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('dark');
         }
         function toggleInvert() { document.getElementById('pdfCanvas').classList.toggle('pdf-invert'); }
-        
-        function showToast(msg, type='success') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `toast ${type === 'success' ? 'toast-success' : 'toast-error'}`;
-            toast.innerHTML = `<span>${type=='success'?'✅':'⚠️'}</span><span>${msg}</span>`;
-            container.appendChild(toast);
-            
-            setTimeout(() => toast.classList.add('show'), 10);
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
 
-        function addBookmark() {
-            const note = prompt("Bookmark Note:", `Page ${state.pageNum}`);
-            if(note) {
-                // In a real app, save this to localStorage array
-                showToast("Bookmark Saved Successfully");
-            }
-        }
-
-        function setupShortcuts() {
-            document.addEventListener('keydown', (e) => {
-                if(document.getElementById('reader-view').classList.contains('hidden')) return;
-                
-                if(e.key === 'ArrowRight') changePage(1);
-                if(e.key === 'ArrowLeft') changePage(-1);
-                if(e.key.toLowerCase() === 'b') addBookmark();
-                if(e.key.toLowerCase() === 't') toggleSidePanel('toc');
-                if(e.key.toLowerCase() === 'f') toggleSidePanel('search');
-            });
-        }
-        
-        // --- Filter Tabs ---
+        // Filter Logic
         document.getElementById('filterTabs').addEventListener('click', (e) => {
             if(e.target.tagName === 'BUTTON') {
                 document.querySelectorAll('#filterTabs button').forEach(b => {
-                    b.classList.remove('bg-brand-600', 'text-white', 'shadow-lg');
-                    b.classList.add('bg-white', 'dark:bg-card');
+                    b.classList.remove('bg-white', 'text-brand-600', 'shadow-sm');
+                    b.classList.add('text-gray-500', 'hover:text-gray-900');
                 });
-                e.target.classList.remove('bg-white', 'dark:bg-card');
-                e.target.classList.add('bg-brand-600', 'text-white', 'shadow-lg');
+                e.target.classList.remove('text-gray-500', 'hover:text-gray-900');
+                e.target.classList.add('bg-white', 'dark:bg-gray-600', 'text-brand-600', 'dark:text-white', 'shadow-sm');
                 renderLibrary(e.target.dataset.cat, document.getElementById('globalSearch').value);
             }
         });
         document.getElementById('globalSearch').addEventListener('input', (e) => {
-            const cat = document.querySelector('#filterTabs button.bg-brand-600').dataset.cat;
-            renderLibrary(cat, e.target.value);
+            renderLibrary('all', e.target.value);
         });
 
     </script>
